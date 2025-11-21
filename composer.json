@@ -15,6 +15,7 @@
         }
     },
     "require-dev": {
-        "tracy/tracy": "^2.11"
+        "tracy/tracy": "^2.11",
+        "phpecs/phpecs": "^2.2"
     }
 }
