@@ -1,0 +1,16 @@
+{
+    "name": "rector/dependency-audit",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.2",
+        "symfony/console": "6.4",
+        "symfony/process": "^7.3",
+        "illuminate/container": "^12.39",
+        "nette/utils": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Rector\\DependencyAudit\\": "src"
+        }
+    }
+}
