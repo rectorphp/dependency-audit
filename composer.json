@@ -12,5 +12,8 @@
         "psr-4": {
             "Rector\\DependencyAudit\\": "src"
         }
+    },
+    "require-dev": {
+        "tracy/tracy": "^2.11"
     }
 }

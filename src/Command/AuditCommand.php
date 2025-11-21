@@ -13,11 +13,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
 
-final class CloneComposerReposCommand extends Command
+final class AuditCommand extends Command
 {
     protected function configure(): void
     {
-        $this->setName('clone-composer-repos');
+        $this->setName('audit');
 
         $this->setDescription('Clone all Git repositories from composer.lock into a target directory');
 
