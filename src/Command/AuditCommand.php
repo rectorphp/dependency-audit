@@ -50,10 +50,15 @@ final class AuditCommand extends Command
 
         // remove symfony/* packages, as they share the same code quality, no need to check 35 split packages
         // keep output informative and focused on non framework packages instead
-        $packagesWithotuSymfony = array_filter($packages, fn (array $package) => ! str_starts_with($package['name'] ?? '', 'symfony'));
+        $packagesWithoutSymfony = array_filter($packages, fn (array $package) => ! str_starts_with($package['name'] ?? '', 'symfony'));
 
-        var_dump($packagesWithotuSymfony);
-        die;
+        if ($packages !== $packagesWithoutSymfony) {
+            $symfonyStyle->write(sprintf(
+                '<fg=green>Skipping %d Symfony packages to avoid repeated single-framework results.</>',
+                count($packages) - count($packagesWithoutSymfony)
+            ));
+            $symfonyStyle->newLine();
+        }
 
         $symfonyStyle->text(sprintf('Found %d installed packages', count($packages)));
         $symfonyStyle->newLine();
