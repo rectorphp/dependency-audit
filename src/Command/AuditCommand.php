@@ -19,23 +19,19 @@ final class AuditCommand extends Command
     {
         $this->setName('audit');
 
-        $this->setDescription('Audit  all Git repositories from composer.lock into a target directory');
+        $this->setDescription('Audit your dependencies for code quality levels they hold');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $symfonyStyle = new SymfonyStyle($input, $output);
 
-        $lockfile = (string) $input->getOption('lockfile');
-
-        // normalize to absolute paths based on CWD
-        if (! str_starts_with($lockfile, DIRECTORY_SEPARATOR)) {
-            $lockfile = getcwd() . DIRECTORY_SEPARATOR . $lockfile;
-        }
-
         $installedJsonFilePath = getcwd() . '/vendor/composer/installed.json';
 
         $targetDir = getcwd() . '/cloned-repos';
+
+        dump($installedJsonFilePath);
+        die;
 
         $symfonyStyle->section('Reading composer.lock');
 

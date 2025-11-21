@@ -6,7 +6,8 @@
         "symfony/console": "6.4",
         "symfony/process": "^7.3",
         "illuminate/container": "^12.39",
-        "nette/utils": "^4.0"
+        "nette/utils": "^4.0",
+        "webmozart/assert": "^1.12"
     },
     "autoload": {
         "psr-4": {
