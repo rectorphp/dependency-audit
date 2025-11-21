@@ -7,6 +7,7 @@ namespace Rector\DependencyAudit\Command;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
+use Rector\DependencyAudit\Auditor\RequiredPHPVersionAuditor;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -16,6 +17,20 @@ use Webmozart\Assert\Assert;
 
 final class AuditCommand extends Command
 {
+    /**
+     * @var RequiredPHPVersionAuditor[]
+     */
+    private array $auditors = [];
+
+    public function __construct()
+    {
+        $this->auditors = [
+            new RequiredPHPVersionAuditor(),
+        ];
+
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this->setName('audit');
@@ -31,8 +46,6 @@ final class AuditCommand extends Command
         Assert::fileExists($installedJsonFilePath);
 
         $clonedRepositoryDirectory = getcwd() . '/cloned-repos';
-
-        $symfonyStyle->section('Reading composer.lock');
 
         try {
             /** @var array<string, mixed> $lockData */
@@ -57,17 +70,39 @@ final class AuditCommand extends Command
                 '<fg=green>Skipping %d Symfony packages to avoid repeated single-framework results.</>',
                 count($packages) - count($packagesWithoutSymfony)
             ));
+
             $symfonyStyle->newLine();
         }
 
-        $symfonyStyle->text(sprintf('Found %d installed packages', count($packages)));
+        $symfonyStyle->text(sprintf('Found %d installed packages', count($packagesWithoutSymfony)));
         $symfonyStyle->newLine();
+        // @todo next
+        // run auditors
 
-        $this->cloneInstalledPackages($packages, $clonedRepositoryDirectory, $symfonyStyle);
+        // @todo introduce RequiredPackage value object
+        foreach ($packagesWithoutSymfony as $package) {
+            $packageDirName = str_replace('/', '-', $package['name']);
+            $clonedPackageDirectory = $clonedRepositoryDirectory . '/' . $packageDirName;
+
+            if (file_exists($clonedPackageDirectory)) {
+                dump($clonedRepositoryDirectory);
+                foreach ($this->auditors as $auditor) {
+                    $auditResult = $auditor->audit($clonedPackageDirectory);
+
+                    dump($auditResult);
+                }
+            }
+            die;
+        }
+
+        // $this->cloneInstalledPackages($packagesWithoutSymfony, $clonedRepositoryDirectory, $symfonyStyle);
 
         return Command::SUCCESS;
     }
 
+    /**
+     * @param array<array{string: string}> $packages
+     */
     private function cloneInstalledPackages(array $packages, string $clonedRepositoryDirectory, SymfonyStyle $symfonyStyle): void
     {
         foreach ($packages as $package) {
