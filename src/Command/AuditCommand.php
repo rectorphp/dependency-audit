@@ -39,7 +39,7 @@ final class AuditCommand extends Command
             /** @var array<string, mixed> $lockData */
             $lockData = Json::decode(
                 file_get_contents($installedJsonFilePath) ?: '',
-                Json::FORCE_ARRAY
+                true
             );
         } catch (JsonException $exception) {
             $symfonyStyle->error('Failed to parse composer.lock: ' . $exception->getMessage());
@@ -49,20 +49,19 @@ final class AuditCommand extends Command
         $packages = array_merge($lockData['packages'] ?? [], $lockData['packages-dev'] ?? [],);
         FileSystem::createDir($clonedRepositoryDirectory);
 
-
-        if (! is_dir($clonedRepositoryDirectory) && ! mkdir($clonedRepositoryDirectory, 0777, true) && ! is_dir($clonedRepositoryDirectory)) {
-            $symfonyStyle->error(sprintf('Could not create target directory "%s"', $clonedRepositoryDirectory));
-            return Command::FAILURE;
-        }
-
-        $symfonyStyle->text(sprintf('Target directory: <info>%s</info>', $clonedRepositoryDirectory));
-        $symfonyStyle->text(sprintf('Total packages in lock file: <info>%d</info>', count($packages)));
+        $symfonyStyle->text(sprintf('Found %d installed packages', count($packages)));
         $symfonyStyle->newLine();
 
+        $this->cloneInstalledPackages($packages, $clonedRepositoryDirectory, $symfonyStyle);
+
+        return Command::SUCCESS;
+    }
+
+    private function cloneInstalledPackages(array $packages, string $clonedRepositoryDirectory, SymfonyStyle $symfonyStyle): void
+    {
         foreach ($packages as $package) {
             $name = $package['name'] ?? null;
             $source = $package['source']['url'] ?? null;
-
             if (! $name || ! $source) {
                 continue;
             }
@@ -99,7 +98,5 @@ final class AuditCommand extends Command
         }
 
         $symfonyStyle->success('Cloning is done');
-
-        return Command::SUCCESS;
     }
 }
