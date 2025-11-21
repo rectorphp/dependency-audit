@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Rector\DependencyAudit\Command;
 
+use Nette\Utils\JsonException;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
-use Nette\Utils\JsonException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
