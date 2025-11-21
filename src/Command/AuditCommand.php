@@ -48,6 +48,13 @@ final class AuditCommand extends Command
         $packages = array_merge($lockData['packages'] ?? [], $lockData['packages-dev'] ?? [],);
         FileSystem::createDir($clonedRepositoryDirectory);
 
+        // remove symfony/* packages, as they share the same code quality, no need to check 35 split packages
+        // keep output informative and focused on non framework packages instead
+        $packagesWithotuSymfony = array_filter($packages, fn (array $package) => ! str_starts_with($package['name'] ?? '', 'symfony'));
+
+        var_dump($packagesWithotuSymfony);
+        die;
+
         $symfonyStyle->text(sprintf('Found %d installed packages', count($packages)));
         $symfonyStyle->newLine();
 
