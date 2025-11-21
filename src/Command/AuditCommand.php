@@ -85,14 +85,12 @@ final class AuditCommand extends Command
             $clonedPackageDirectory = $clonedRepositoryDirectory . '/' . $packageDirName;
 
             if (file_exists($clonedPackageDirectory)) {
-                dump($clonedRepositoryDirectory);
                 foreach ($this->auditors as $auditor) {
                     $auditResult = $auditor->audit($clonedPackageDirectory);
 
                     dump($auditResult);
                 }
             }
-            die;
         }
 
         // $this->cloneInstalledPackages($packagesWithoutSymfony, $clonedRepositoryDirectory, $symfonyStyle);

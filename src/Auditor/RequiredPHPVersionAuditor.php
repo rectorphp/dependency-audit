@@ -24,6 +24,9 @@ final class RequiredPHPVersionAuditor implements AuditorInterface
         $versionParser = new VersionParser();
         $constraint = $versionParser->parseConstraints($requiredPhpVersion);
 
+        dump(12243);
+
+
         dump($constraint);
         die;
 
