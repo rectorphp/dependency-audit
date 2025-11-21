@@ -19,30 +19,7 @@ final class AuditCommand extends Command
     {
         $this->setName('audit');
 
-        $this->setDescription('Clone all Git repositories from composer.lock into a target directory');
-
-        $this->addOption(
-            'lockfile',
-            null,
-            InputOption::VALUE_REQUIRED,
-            'Path to composer.lock',
-            'composer.lock'
-        );
-
-        $this->addOption(
-            'target-dir',
-            null,
-            InputOption::VALUE_REQUIRED,
-            'Directory where repositories will be cloned',
-            '_deps_repos'
-        );
-
-        $this->addOption(
-            'github-only',
-            null,
-            InputOption::VALUE_NONE,
-            'If set, only GitHub repositories will be cloned'
-        );
+        $this->setDescription('Audit  all Git repositories from composer.lock into a target directory');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -50,22 +27,15 @@ final class AuditCommand extends Command
         $symfonyStyle = new SymfonyStyle($input, $output);
 
         $lockfile = (string) $input->getOption('lockfile');
-        $targetDir = (string) $input->getOption('target-dir');
-        $githubOnly = (bool) $input->getOption('github-only');
 
         // normalize to absolute paths based on CWD
         if (! str_starts_with($lockfile, DIRECTORY_SEPARATOR)) {
             $lockfile = getcwd() . DIRECTORY_SEPARATOR . $lockfile;
         }
 
-        if (! str_starts_with($targetDir, DIRECTORY_SEPARATOR)) {
-            $targetDir = getcwd() . DIRECTORY_SEPARATOR . $targetDir;
-        }
+        $installedJsonFilePath = getcwd() . '/vendor/composer/installed.json';
 
-        if (! file_exists($lockfile)) {
-            $symfonyStyle->error(sprintf('composer.lock not found at "%s"', $lockfile));
-            return Command::FAILURE;
-        }
+        $targetDir = getcwd() . '/cloned-repos';
 
         $symfonyStyle->section('Reading composer.lock');
 
