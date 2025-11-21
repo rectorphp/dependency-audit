@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Rector\DependencyAudit\Command;
 
+use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
 use Symfony\Component\Console\Command\Command;
@@ -12,6 +13,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
+use Webmozart\Assert\Assert;
 
 final class AuditCommand extends Command
 {
@@ -27,18 +29,16 @@ final class AuditCommand extends Command
         $symfonyStyle = new SymfonyStyle($input, $output);
 
         $installedJsonFilePath = getcwd() . '/vendor/composer/installed.json';
+        Assert::fileExists($installedJsonFilePath);
 
-        $targetDir = getcwd() . '/cloned-repos';
-
-        dump($installedJsonFilePath);
-        die;
+        $clonedRepositoryDirectory = getcwd() . '/cloned-repos';
 
         $symfonyStyle->section('Reading composer.lock');
 
         try {
             /** @var array<string, mixed> $lockData */
             $lockData = Json::decode(
-                file_get_contents($lockfile) ?: '',
+                file_get_contents($installedJsonFilePath) ?: '',
                 Json::FORCE_ARRAY
             );
         } catch (JsonException $exception) {
@@ -47,47 +47,32 @@ final class AuditCommand extends Command
         }
 
         $packages = array_merge($lockData['packages'] ?? [], $lockData['packages-dev'] ?? [],);
+        FileSystem::createDir($clonedRepositoryDirectory);
 
-        dump($packages);
-        die;
 
-        if (! is_dir($targetDir) && ! mkdir($targetDir, 0777, true) && ! is_dir($targetDir)) {
-            $symfonyStyle->error(sprintf('Could not create target directory "%s"', $targetDir));
+        if (! is_dir($clonedRepositoryDirectory) && ! mkdir($clonedRepositoryDirectory, 0777, true) && ! is_dir($clonedRepositoryDirectory)) {
+            $symfonyStyle->error(sprintf('Could not create target directory "%s"', $clonedRepositoryDirectory));
             return Command::FAILURE;
         }
 
-        $symfonyStyle->text(sprintf('Target directory: <info>%s</info>', $targetDir));
+        $symfonyStyle->text(sprintf('Target directory: <info>%s</info>', $clonedRepositoryDirectory));
         $symfonyStyle->text(sprintf('Total packages in lock file: <info>%d</info>', count($packages)));
         $symfonyStyle->newLine();
-
-        $clonedCount = 0;
-        $skippedCount = 0;
 
         foreach ($packages as $package) {
             $name = $package['name'] ?? null;
             $source = $package['source']['url'] ?? null;
 
             if (! $name || ! $source) {
-                $skippedCount++;
                 continue;
             }
 
-            if ($githubOnly && ! str_contains($source, 'github.com')) {
-                $skippedCount++;
-                continue;
-            }
-
-            // directory name: vendor__package (e.g. symfony__console)
-            $dirName = str_replace('/', '__', $name);
-            $repoDir = $targetDir . DIRECTORY_SEPARATOR . $dirName;
+            // directory name in "vendor-package" format (e.g. symfony-console)
+            $dirName = str_replace('/', '-', $name);
+            $repoDir = $clonedRepositoryDirectory . DIRECTORY_SEPARATOR . $dirName;
 
             if (is_dir($repoDir . DIRECTORY_SEPARATOR . '.git')) {
-                $symfonyStyle->writeln(sprintf(
-                    '⏭  Skipping <comment>%s</comment>, already cloned at %s',
-                    $name,
-                    $repoDir
-                ));
-                $skippedCount++;
+                // already cloned
                 continue;
             }
 
@@ -97,27 +82,13 @@ final class AuditCommand extends Command
                 $source
             ));
 
-            $process = new Process([
-                'git',
-                'clone',
-                '--depth',
-                '1',
-                $source,
-                $repoDir,
-            ]);
+            $gitCloneProcess = new Process(['git', 'clone', '--depth', '1', $source, $repoDir,]);
+            $gitCloneProcess->setTimeout(300);
 
-            $process->setTimeout(300);
-
-            $process->run(function (string $type, string $buffer) use ($symfonyStyle): void {
+            $gitCloneProcess->mustRun(function (string $type, string $buffer) use ($symfonyStyle): void {
                 // stream git output via SymfonyStyle
                 $symfonyStyle->write($buffer);
             });
-
-            if (! $process->isSuccessful()) {
-                $symfonyStyle->error(sprintf('Failed to clone %s', $name));
-                $symfonyStyle->writeln($process->getErrorOutput());
-                continue;
-            }
 
             $symfonyStyle->writeln(sprintf(
                 '✅ Cloned <info>%s</info> into %s',
@@ -125,15 +96,9 @@ final class AuditCommand extends Command
                 $repoDir
             ));
             $symfonyStyle->newLine();
-
-            $clonedCount++;
         }
 
-        $symfonyStyle->success(sprintf(
-            'Done. Cloned %d packages, skipped %d.',
-            $clonedCount,
-            $skippedCount
-        ));
+        $symfonyStyle->success('Cloning is done');
 
         return Command::SUCCESS;
     }
