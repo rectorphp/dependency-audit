@@ -45,7 +45,7 @@ final class AuditCommand extends Command
             return Command::FAILURE;
         }
 
-        $packages = array_merge($lockData['packages'] ?? [], $lockData['packages-dev'] ?? [],);
+        $packages = array_merge($lockData['packages'] ?? [], $lockData['packages-dev'] ?? []);
         FileSystem::createDir($clonedRepositoryDirectory);
 
         // remove symfony/* packages, as they share the same code quality, no need to check 35 split packages
@@ -92,7 +92,7 @@ final class AuditCommand extends Command
                 $source
             ));
 
-            $gitCloneProcess = new Process(['git', 'clone', '--depth', '1', $source, $repoDir,]);
+            $gitCloneProcess = new Process(['git', 'clone', '--depth', '1', $source, $repoDir]);
             $gitCloneProcess->setTimeout(300);
 
             $gitCloneProcess->mustRun(function (string $type, string $buffer) use ($symfonyStyle): void {
