@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Rector\DependecynAudit\Command\CloneComposerReposCommand;
+use Rector\DependencyAudit\Command\CloneComposerReposCommand;
 use Symfony\Component\Console\Application;
 
 require __DIR__ . '/../vendor/autoload.php';

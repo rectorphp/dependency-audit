@@ -47,7 +47,7 @@ final class CloneComposerReposCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
+        $symfonyStyle = new SymfonyStyle($input, $output);
 
         $lockfile = (string) $input->getOption('lockfile');
         $targetDir = (string) $input->getOption('target-dir');
@@ -63,11 +63,11 @@ final class CloneComposerReposCommand extends Command
         }
 
         if (! file_exists($lockfile)) {
-            $io->error(sprintf('composer.lock not found at "%s"', $lockfile));
+            $symfonyStyle->error(sprintf('composer.lock not found at "%s"', $lockfile));
             return Command::FAILURE;
         }
 
-        $io->section('Reading composer.lock');
+        $symfonyStyle->section('Reading composer.lock');
 
         try {
             /** @var array<string, mixed> $lockData */
@@ -76,23 +76,23 @@ final class CloneComposerReposCommand extends Command
                 Json::FORCE_ARRAY
             );
         } catch (JsonException $exception) {
-            $io->error('Failed to parse composer.lock: ' . $exception->getMessage());
+            $symfonyStyle->error('Failed to parse composer.lock: ' . $exception->getMessage());
             return Command::FAILURE;
         }
 
-        $packages = array_merge(
-            $lockData['packages'] ?? [],
-            $lockData['packages-dev'] ?? [],
-        );
+        $packages = array_merge($lockData['packages'] ?? [], $lockData['packages-dev'] ?? [],);
+
+        dump($packages);
+        die;
 
         if (! is_dir($targetDir) && ! mkdir($targetDir, 0777, true) && ! is_dir($targetDir)) {
-            $io->error(sprintf('Could not create target directory "%s"', $targetDir));
+            $symfonyStyle->error(sprintf('Could not create target directory "%s"', $targetDir));
             return Command::FAILURE;
         }
 
-        $io->text(sprintf('Target directory: <info>%s</info>', $targetDir));
-        $io->text(sprintf('Total packages in lock file: <info>%d</info>', count($packages)));
-        $io->newLine();
+        $symfonyStyle->text(sprintf('Target directory: <info>%s</info>', $targetDir));
+        $symfonyStyle->text(sprintf('Total packages in lock file: <info>%d</info>', count($packages)));
+        $symfonyStyle->newLine();
 
         $clonedCount = 0;
         $skippedCount = 0;
@@ -116,7 +116,7 @@ final class CloneComposerReposCommand extends Command
             $repoDir = $targetDir . DIRECTORY_SEPARATOR . $dirName;
 
             if (is_dir($repoDir . DIRECTORY_SEPARATOR . '.git')) {
-                $io->writeln(sprintf(
+                $symfonyStyle->writeln(sprintf(
                     '⏭  Skipping <comment>%s</comment>, already cloned at %s',
                     $name,
                     $repoDir
@@ -125,7 +125,7 @@ final class CloneComposerReposCommand extends Command
                 continue;
             }
 
-            $io->writeln(sprintf(
+            $symfonyStyle->writeln(sprintf(
                 '🔄 Cloning <info>%s</info> from %s',
                 $name,
                 $source
@@ -142,28 +142,28 @@ final class CloneComposerReposCommand extends Command
 
             $process->setTimeout(300);
 
-            $process->run(function (string $type, string $buffer) use ($io): void {
+            $process->run(function (string $type, string $buffer) use ($symfonyStyle): void {
                 // stream git output via SymfonyStyle
-                $io->write($buffer);
+                $symfonyStyle->write($buffer);
             });
 
             if (! $process->isSuccessful()) {
-                $io->error(sprintf('Failed to clone %s', $name));
-                $io->writeln($process->getErrorOutput());
+                $symfonyStyle->error(sprintf('Failed to clone %s', $name));
+                $symfonyStyle->writeln($process->getErrorOutput());
                 continue;
             }
 
-            $io->writeln(sprintf(
+            $symfonyStyle->writeln(sprintf(
                 '✅ Cloned <info>%s</info> into %s',
                 $name,
                 $repoDir
             ));
-            $io->newLine();
+            $symfonyStyle->newLine();
 
             $clonedCount++;
         }
 
-        $io->success(sprintf(
+        $symfonyStyle->success(sprintf(
             'Done. Cloned %d packages, skipped %d.',
             $clonedCount,
             $skippedCount
