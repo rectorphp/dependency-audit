@@ -48,8 +48,6 @@ final class AuditCommand extends Command
         $this->symfonyStyle->text(sprintf('Found %d dependency packages', count($requiredPackages)));
         $this->symfonyStyle->newLine();
 
-        $auditResults = [];
-
         foreach ($requiredPackages as $requiredPackage) {
             $this->cloneRequiredPackageIfMissing($requiredPackage, $clonedRepositoryDirectory);
 
@@ -57,15 +55,18 @@ final class AuditCommand extends Command
 
             foreach ($this->auditors as $auditor) {
                 $auditResult = $auditor->audit($clonedPackageDirectory);
-                $auditResults[$requiredPackage['name']] = array_merge($auditResults[$requiredPackage['name']] ?? [], $auditResult);
+                $requiredPackage->addAuditResults($auditResult);
             }
         }
 
         $this->symfonyStyle->title('Audit Results');
-        foreach ($auditResults as $packageName => $packageAuditResults) {
-            $this->symfonyStyle->section($packageName);
-            foreach ($packageAuditResults as $packageAuditResult) {
-                $this->symfonyStyle->writeln($packageAuditResult);
+        foreach ($requiredPackages as $requiredPackage) {
+            $this->symfonyStyle->section($requiredPackage->getName());
+
+            foreach ($requiredPackage->getAuditResults() as $metric => $result) {
+                $this->symfonyStyle->writeln(
+                    sprintf('📝 <info>%s</info>: %s', $metric, $result)
+                );
             }
 
             $this->symfonyStyle->newLine();

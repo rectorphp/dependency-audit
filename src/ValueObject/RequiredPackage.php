@@ -6,9 +6,14 @@ namespace Rector\DependencyAudit\ValueObject;
 
 final class RequiredPackage
 {
+    /**
+     * @var array<string, mixed>
+     */
+    private array $auditResults = [];
+
     public function __construct(
-        private string $name,
-        private string $sourceUrl,
+        private readonly string $name,
+        private readonly string $sourceUrl,
     ) {
     }
 
@@ -25,5 +30,18 @@ final class RequiredPackage
     public function getDirectoryName(): string
     {
         return str_replace('/', '-', $this->name);
+    }
+
+    public function addAuditResults(array $auditResults): void
+    {
+        $this->auditResults = array_merge($this->auditResults, $auditResults));
+    }
+
+    /**
+     * @return mixed[]
+     */
+    public function getAuditResults(): array
+    {
+        return $this->auditResults;
     }
 }
