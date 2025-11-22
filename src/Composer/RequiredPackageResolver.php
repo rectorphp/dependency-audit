@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Rector\DependencyAudit\Composer;
 
-use Nette\Utils\FileSystem;
 use Rector\DependencyAudit\Utils\JsonLoader;
 use Rector\DependencyAudit\ValueObject\RequiredPackage;
 
@@ -26,7 +25,6 @@ final class RequiredPackageResolver
         }
 
         // create value objects first
-
 
         // remove symfony/* packages, as they share the same code quality, no need to check 35 split packages
         // keep output informative and focused on non framework packages instead

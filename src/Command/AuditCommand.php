@@ -72,7 +72,6 @@ final class AuditCommand extends Command
             $symfonyStyle->newLine();
         }
 
-
         $clonedRepositoryDirectory = getcwd() . '/cloned-repos';
         FileSystem::createDir($clonedRepositoryDirectory);
 
@@ -99,7 +98,6 @@ final class AuditCommand extends Command
                 }
             }
         }
-
 
         return Command::SUCCESS;
     }

@@ -6,5 +6,4 @@ namespace Rector\DependencyAudit\ValueObject;
 
 final class RequiredPackage
 {
-
 }
