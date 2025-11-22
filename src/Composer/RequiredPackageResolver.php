@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Rector\DependencyAudit\Composer;
 
-use Nette\Utils\FileSystem;
 use Rector\DependencyAudit\Utils\JsonLoader;
 use Rector\DependencyAudit\ValueObject\RequiredPackage;
-use Symplify\EasyCodingStandard\FileSystem\JsonFileSystem;
 use Webmozart\Assert\Assert;
 
 final class RequiredPackageResolver
@@ -39,10 +37,6 @@ final class RequiredPackageResolver
                     return false;
                 }
 
-                if (str_starts_with($package->getName(), 'laravel/')) {
-                    return false;
-                }
-
                 return ! str_starts_with($package->getName(), 'psr/');
             }
         );
@@ -63,6 +57,11 @@ final class RequiredPackageResolver
         $requiredPackages = [];
         foreach ($packagesData as $packagesDataItem) {
             if (! isset($packagesDataItem['name'])) {
+                continue;
+            }
+
+            // skip dev packages, as they are not required in production
+            if (in_array($packagesDataItem['name'], $devPackageNames, true)) {
                 continue;
             }
 
