@@ -99,7 +99,7 @@ final class AuditCommand extends Command
             $requiredPackage->getSourceUrl()
         ));
 
-        $gitCloneProcess = new Process(['git', 'clone', '--depth', '1', $requiredPackage->getSourceUrl(), $repositoryTemporaryDirectory], timeout: 30);
+        $gitCloneProcess = new Process(['git', 'clone', '--depth', '1', $requiredPackage->getSourceUrl(), $repositoryTemporaryDirectory], timeout: 60);
 
         $gitCloneProcess->mustRun(function (string $type, string $buffer): void {
             // stream git output via SymfonyStyle
