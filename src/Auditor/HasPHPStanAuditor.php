@@ -18,6 +18,8 @@ final class HasPHPStanAuditor implements AuditorInterface
 
         $composerJson = JsonLoader::loadFileToJson($composerJsonFilePath);
 
+        dump($composerJson);
+
         $hasPhpstan = isset($composerJson['require-dev']['phpstan/phpstan']);
 
         return [
