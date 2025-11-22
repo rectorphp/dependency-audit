@@ -1,5 +1,6 @@
 {
     "name": "rector/dependency-audit",
+    "description": "Audit your composer dependencies for their code quality they provide",
     "license": "proprietary",
     "require": {
         "php": "^8.2",
