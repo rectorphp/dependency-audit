@@ -54,7 +54,10 @@ final class AuditCommand extends Command
 
         $requiredPackages = $this->requiredPackageResolver->resolve($projectDirectory);
 
-        $this->symfonyStyle->writeln(sprintf('<fg=green>Running dependency audit on %d dependency packages</>', count($requiredPackages)));
+        $this->symfonyStyle->writeln(
+            sprintf('<fg=green>Running dependency audit on %d dependency packages</>',
+            count($requiredPackages))
+        );
         $this->symfonyStyle->newLine();
 
         foreach ($requiredPackages as $requiredPackage) {
@@ -70,7 +73,7 @@ final class AuditCommand extends Command
 
         $this->symfonyStyle->title('Audit Results');
         foreach ($requiredPackages as $requiredPackage) {
-            $this->symfonyStyle->writeln(sprintf('<fg=yellow>%s</>', $requiredPackage->getName()));
+            $this->symfonyStyle->writeln(sprintf('<fg=green>%s</>', $requiredPackage->getName()));
 
             foreach ($requiredPackage->getAuditResults() as $metric => $result) {
                 $this->symfonyStyle->writeln(sprintf('* %s: %s', $metric, $result));

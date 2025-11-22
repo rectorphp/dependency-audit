@@ -28,7 +28,7 @@ final class RequiredPackageResolver
 
         $requiredPackageNames = $this->createValueObjects($packagesData, $devPackageNames);
 
-        $usefulPackages = array_filter(
+        return array_filter(
             $requiredPackageNames,
             function (RequiredPackage $package): bool {
                 // remove symfony/* packages, as they share the same code quality, no need to check 35 split packages
@@ -40,8 +40,6 @@ final class RequiredPackageResolver
                 return ! str_starts_with($package->getName(), 'psr/');
             }
         );
-
-        return $usefulPackages;
     }
 
     /**

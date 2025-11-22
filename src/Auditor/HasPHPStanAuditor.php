@@ -10,6 +10,13 @@ use Rector\DependencyAudit\Utils\JsonLoader;
 
 final class HasPHPStanAuditor implements AuditorInterface
 {
+    /**
+     * @var string[]
+     */
+    private const PHPSTAN_SHORT_NAMES = [
+        'phpstan.neon', 'phpstan.neon.dist',
+    ];
+
     public function audit(string $repositoryDirectory): array
     {
         $composerJsonFilePath = $repositoryDirectory . '/composer.json';
@@ -23,23 +30,24 @@ final class HasPHPStanAuditor implements AuditorInterface
         $level = '-';
 
         // fallback check
-        if (file_exists($repositoryDirectory . '/phpstan.neon')) {
+        foreach (self::PHPSTAN_SHORT_NAMES as $phpstanShortName) {
+            if (! file_exists($repositoryDirectory . '/' . $phpstanShortName)) {
+                continue;
+            }
+
             $hasPhpstan = true;
 
             // parse level: x out of this file
-            $phpstanNeonContent = FileSystem::read($repositoryDirectory . '/phpstan.neon');
+            $phpstanNeonContent = FileSystem::read($repositoryDirectory . '/' . $phpstanShortName);
             if (preg_match('/level:\s*(\d+)/', $phpstanNeonContent, $matches) === 1) {
                 $level = $matches[1];
+                break;
             }
-
-            dump($level);
-            die;
         }
-
 
         return [
             'has-phpstan' => $hasPhpstan ? 'yes' : 'no',
-            'level' => $hasPhpstan ? '-' : $hasPhpstan,
+            'level' => $level,
         ];
     }
 }
