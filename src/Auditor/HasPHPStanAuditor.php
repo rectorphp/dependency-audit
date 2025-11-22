@@ -26,7 +26,7 @@ final class HasPHPStanAuditor implements AuditorInterface
 
         $composerJson = JsonLoader::loadFileToJson($composerJsonFilePath);
 
-        $hasPhpstan = isset($composerJson['require-dev']['phpstan/phpstan']);
+        $hasPHPStan = isset($composerJson['require-dev']['phpstan/phpstan']);
         $level = '-';
 
         // fallback check
@@ -35,7 +35,7 @@ final class HasPHPStanAuditor implements AuditorInterface
                 continue;
             }
 
-            $hasPhpstan = true;
+            $hasPHPStan = true;
 
             // parse level: x out of this file
             $phpstanNeonContent = FileSystem::read($repositoryDirectory . '/' . $phpstanShortName);
@@ -45,9 +45,25 @@ final class HasPHPStanAuditor implements AuditorInterface
             }
         }
 
-        return [
-            'has-phpstan' => $hasPhpstan ? 'yes' : 'no',
-            'level' => $level,
+        $baselineLineCount = '-';
+
+        // resolve baseline size if found
+        if (file_exists($repositoryDirectory . '/phpstan-baseline.neon')) {
+            $baselineContent = FileSystem::read($repositoryDirectory . '/phpstan-baseline.neon');
+            // line count
+            $lines = explode("\n", $baselineContent);
+            $baselineLineCount = count($lines);
+        }
+
+        $result = [
+            'has-phpstan' => $hasPHPStan ? 'yes' : 'no',
         ];
+
+        if ($hasPHPStan) {
+            $result['level'] = $level;
+            $result['baseline-line-count'] = $baselineLineCount;
+        }
+
+        return $result;
     }
 }
