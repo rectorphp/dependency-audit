@@ -34,7 +34,7 @@ final class RequiredPackage
 
     public function addAuditResults(array $auditResults): void
     {
-        $this->auditResults = array_merge($this->auditResults, $auditResults));
+        $this->auditResults = array_merge($this->auditResults, $auditResults);
     }
 
     /**
