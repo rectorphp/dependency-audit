@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace Rector\DependencyAudit\Command;
 
 use Nette\Utils\FileSystem;
-use Nette\Utils\Json;
-use Nette\Utils\JsonException;
+use Rector\DependencyAudit\Auditor\HasPHPStanAuditor;
 use Rector\DependencyAudit\Auditor\RequiredPHPVersionAuditor;
+use Rector\DependencyAudit\Utils\JsonLoader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
-use Webmozart\Assert\Assert;
 
 final class AuditCommand extends Command
 {
@@ -26,6 +25,7 @@ final class AuditCommand extends Command
     {
         $this->auditors = [
             new RequiredPHPVersionAuditor(),
+            new HasPHPStanAuditor(),
         ];
 
         parent::__construct();
@@ -43,27 +43,24 @@ final class AuditCommand extends Command
         $symfonyStyle = new SymfonyStyle($input, $output);
 
         $installedJsonFilePath = getcwd() . '/vendor/composer/installed.json';
-        Assert::fileExists($installedJsonFilePath);
+
+        $lockData = JsonLoader::loadFileToJson($installedJsonFilePath);
+
+        // prod packages
+        $packages = $lockData['packages'] ?? [];
 
         $clonedRepositoryDirectory = getcwd() . '/cloned-repos';
-
-        try {
-            /** @var array<string, mixed> $lockData */
-            $lockData = Json::decode(
-                file_get_contents($installedJsonFilePath) ?: '',
-                true
-            );
-        } catch (JsonException $exception) {
-            $symfonyStyle->error('Failed to parse composer.lock: ' . $exception->getMessage());
-            return Command::FAILURE;
-        }
-
-        $packages = array_merge($lockData['packages'] ?? [], $lockData['packages-dev'] ?? []);
         FileSystem::createDir($clonedRepositoryDirectory);
 
         // remove symfony/* packages, as they share the same code quality, no need to check 35 split packages
         // keep output informative and focused on non framework packages instead
         $packagesWithoutSymfony = array_filter($packages, fn (array $package) => ! str_starts_with($package['name'] ?? '', 'symfony'));
+
+        // remove "psr" packages
+        $packagesWithoutSymfony = array_filter(
+            $packagesWithoutSymfony,
+            fn (array $package) => ! str_starts_with($package['name'] ?? '', 'psr/')
+        );
 
         if ($packages !== $packagesWithoutSymfony) {
             $symfonyStyle->write(sprintf(
@@ -79,6 +76,8 @@ final class AuditCommand extends Command
         // @todo next
         // run auditors
 
+        $auditResults = [];
+
         // @todo introduce RequiredPackage value object
         foreach ($packagesWithoutSymfony as $package) {
             $packageDirName = str_replace('/', '-', $package['name']);
@@ -88,10 +87,12 @@ final class AuditCommand extends Command
                 foreach ($this->auditors as $auditor) {
                     $auditResult = $auditor->audit($clonedPackageDirectory);
 
-                    dump($auditResult);
+                    $auditResults[$package['name']] = array_merge($auditResults[$package['name']] ?? [], $auditResult);
                 }
             }
         }
+
+        dump($auditResults);
 
         // $this->cloneInstalledPackages($packagesWithoutSymfony, $clonedRepositoryDirectory, $symfonyStyle);
 

@@ -21,17 +21,25 @@ final class RequiredPHPVersionAuditor implements AuditorInterface
 
         $requiredPhpVersion = $composerJson['require']['php'] ?? null;
 
-        $versionParser = new VersionParser();
-        $constraint = $versionParser->parseConstraints($requiredPhpVersion);
+        // extract lower bound from constraint
+        if (is_string($requiredPhpVersion)) {
+            $versionParser = new VersionParser();
+            $constraint = $versionParser->parseConstraints($requiredPhpVersion);
 
-        dump(12243);
+            $minPhpVersion = $constraint->getLowerBound()->getVersion();
 
+            // get first 2 version
 
-        dump($constraint);
-        die;
+            $versionParts = explode('.', $minPhpVersion);
+            if (count($versionParts) >= 2) {
+                $minPhpVersion = $versionParts[0] . '.' . $versionParts[1];
+            }
+        } else {
+            $minPhpVersion = '';
+        }
 
         return [
-            'min-php-version' => $constraint->getLowerBound()->getVersion()
+            'min-php-version' => $minPhpVersion,
         ];
     }
 }
