@@ -7,7 +7,7 @@ namespace Rector\DependencyAudit\ValueObject;
 final class RequiredPackage
 {
     /**
-     * @var array<string, mixed>
+     * @var array<mixed, mixed>
      */
     private array $auditResults = [];
 
@@ -32,6 +32,9 @@ final class RequiredPackage
         return str_replace('/', '-', $this->name);
     }
 
+    /**
+     * @param mixed[] $auditResults
+     */
     public function addAuditResults(array $auditResults): void
     {
         $this->auditResults = array_merge($this->auditResults, $auditResults);

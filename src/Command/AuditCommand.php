@@ -9,6 +9,7 @@ use Rector\DependencyAudit\Composer\RequiredPackageResolver;
 use Rector\DependencyAudit\Contract\AuditorInterface;
 use Rector\DependencyAudit\ValueObject\RequiredPackage;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -33,17 +34,23 @@ final class AuditCommand extends Command
         $this->setName('audit');
 
         $this->setDescription('Audit your dependencies for code quality levels they hold');
+
+        $this->addArgument(
+            'path',
+            InputArgument::OPTIONAL,
+            'Path to project to audit, defaults to current working directory',
+            getcwd()
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $clonedRepositoryDirectory = getcwd() . '/cloned-repos';
-        FileSystem::createDir($clonedRepositoryDirectory);
-
-        $requiredPackages = $this->requiredPackageResolver->resolve(getcwd());
+        $projectDirectory = $input->getArgument('path');
 
         $clonedRepositoryDirectory = getcwd() . '/cloned-repos';
         FileSystem::createDir($clonedRepositoryDirectory);
+
+        $requiredPackages = $this->requiredPackageResolver->resolve($projectDirectory);
 
         $this->symfonyStyle->text(sprintf('Found %d dependency packages', count($requiredPackages)));
         $this->symfonyStyle->newLine();
