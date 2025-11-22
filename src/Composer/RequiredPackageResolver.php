@@ -52,11 +52,11 @@ final class RequiredPackageResolver
     {
         $requiredPackages = [];
         foreach ($packagesData as $packagesDataItem) {
-            if (!isset($packagesDataItem['name'])) {
+            if (! isset($packagesDataItem['name'])) {
                 continue;
             }
 
-            if (!isset($packagesDataItem['source']['url'])) {
+            if (! isset($packagesDataItem['source']['url'])) {
                 continue;
             }
 

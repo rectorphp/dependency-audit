@@ -6,7 +6,6 @@ namespace Rector\DependencyAudit\Command;
 
 use Nette\Utils\FileSystem;
 use Rector\DependencyAudit\Contract\AuditorInterface;
-use Rector\DependencyAudit\Utils\JsonLoader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
