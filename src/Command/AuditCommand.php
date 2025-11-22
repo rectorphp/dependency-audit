@@ -36,13 +36,6 @@ final class AuditCommand extends Command
     {
         $symfonyStyle = new SymfonyStyle($input, $output);
 
-        $installedJsonFilePath = getcwd() . '/vendor/composer/installed.json';
-
-        $lockData = JsonLoader::loadFileToJson($installedJsonFilePath);
-
-        // prod packages
-        $packages = $lockData['packages'] ?? [];
-
         $clonedRepositoryDirectory = getcwd() . '/cloned-repos';
         FileSystem::createDir($clonedRepositoryDirectory);
 

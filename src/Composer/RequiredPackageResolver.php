@@ -15,41 +15,57 @@ final class RequiredPackageResolver
     public function resolve(string $projectDirectory): array
     {
         $installedJsonFilePath = $projectDirectory . '/vendor/composer/installed.json';
-
         $lockData = JsonLoader::loadFileToJson($installedJsonFilePath);
 
-        // required packages
         $packagesData = $lockData['packages'] ?? [];
         if ($packagesData === []) {
             return [];
         }
 
-        foreach ($packagesData as $packagesDataItem) {
-            dump($packagesDataItem);
-        }
+        $requiredPackages = $this->createValueObjects($packagesData);
 
-        die;
+        $usefulPackages = array_filter(
+            $requiredPackages,
+            function (RequiredPackage $package): bool {
+                // remove symfony/* packages, as they share the same code quality, no need to check 35 split packages
+                // keep output informative and focused on non framework packages instead
+                if (str_starts_with($package->getName(), 'symfony/')) {
+                    return false;
+                }
 
-        // create value objects first
+                if (str_starts_with($package->getName(), 'laravel/')) {
+                    return false;
+                }
 
-        // remove symfony/* packages, as they share the same code quality, no need to check 35 split packages
-        // keep output informative and focused on non framework packages instead
-        $packagesWithoutSymfony = array_filter($packages, fn (array $package) => ! str_starts_with($package['name'] ?? '', 'symfony'));
-
-        // remove "psr" packages
-        $packagesWithoutSymfony = array_filter(
-            $packagesWithoutSymfony,
-            fn (array $package) => ! str_starts_with($package['name'] ?? '', 'psr/')
+                return ! str_starts_with($package->getName(), 'psr/');
+            }
         );
 
-        if ($packages !== $packagesWithoutSymfony) {
-            $symfonyStyle->write(sprintf(
-                '<fg=green>Skipping %d Symfony packages to avoid repeated single-framework results.</>',
-                count($packages) - count($packagesWithoutSymfony)
-            ));
+        return $usefulPackages;
+    }
 
-            $symfonyStyle->newLine();
+    /**
+     * @param mixed[] $packagesData
+     * @return RequiredPackage[]
+     */
+    private function createValueObjects(array $packagesData): array
+    {
+        $requiredPackages = [];
+        foreach ($packagesData as $packagesDataItem) {
+            if (!isset($packagesDataItem['name'])) {
+                continue;
+            }
+
+            if (!isset($packagesDataItem['source']['url'])) {
+                continue;
+            }
+
+            $requiredPackages[] = new RequiredPackage(
+                $packagesDataItem['name'],
+                $packagesDataItem['source']['url']
+            );
         }
 
+        return $requiredPackages;
     }
 }
