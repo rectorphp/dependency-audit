@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Rector\DependencyAudit\Command;
 
 use Nette\Utils\FileSystem;
-use Rector\DependencyAudit\Auditor\HasPHPStanAuditor;
-use Rector\DependencyAudit\Auditor\RequiredPHPVersionAuditor;
 use Rector\DependencyAudit\Contract\AuditorInterface;
 use Rector\DependencyAudit\Utils\JsonLoader;
 use Symfony\Component\Console\Command\Command;
@@ -20,7 +18,9 @@ final class AuditCommand extends Command
     /**
      * @param AuditorInterface[] $auditors
      */
-    public function __construct(private array $auditors)
+    public function __construct(
+        private array $auditors
+    )
     {
         parent::__construct();
     }
