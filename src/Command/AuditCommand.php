@@ -18,17 +18,10 @@ use Symfony\Component\Process\Process;
 final class AuditCommand extends Command
 {
     /**
-     * @var AuditorInterface[]
+     * @param AuditorInterface[] $auditors
      */
-    private array $auditors = [];
-
-    public function __construct()
+    public function __construct(private array $auditors)
     {
-        $this->auditors = [
-            new RequiredPHPVersionAuditor(),
-            new HasPHPStanAuditor(),
-        ];
-
         parent::__construct();
     }
 
