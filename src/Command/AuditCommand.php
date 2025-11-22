@@ -40,7 +40,7 @@ final class AuditCommand extends Command
         $clonedRepositoryDirectory = getcwd() . '/cloned-repos';
         FileSystem::createDir($clonedRepositoryDirectory);
 
-        $requiredPackages =  $this->requiredPackageResolver->resolve(getcwd());
+        $requiredPackages = $this->requiredPackageResolver->resolve(getcwd());
 
         $clonedRepositoryDirectory = getcwd() . '/cloned-repos';
         FileSystem::createDir($clonedRepositoryDirectory);
@@ -84,7 +84,7 @@ final class AuditCommand extends Command
         }
 
         $this->symfonyStyle->writeln(sprintf(
-            '🔄 Cloning <info>%s</info> from %s',
+            'Cloning <info>%s</info> from %s',
             $requiredPackage->getName(),
             $requiredPackage->getSourceUrl()
         ));
