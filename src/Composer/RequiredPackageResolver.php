@@ -24,6 +24,12 @@ final class RequiredPackageResolver
             return [];
         }
 
+        foreach ($packagesData as $packagesDataItem) {
+            dump($packagesDataItem);
+        }
+
+        die;
+
         // create value objects first
 
         // remove symfony/* packages, as they share the same code quality, no need to check 35 split packages
