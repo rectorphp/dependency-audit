@@ -6,6 +6,7 @@ namespace Rector\DependencyAudit\Tests\Composer;
 
 use PHPUnit\Framework\TestCase;
 use Rector\DependencyAudit\Composer\RequiredPackageResolver;
+use Rector\DependencyAudit\ValueObject\RequiredPackage;
 
 final class RequiredPackageResolverTest extends TestCase
 {
@@ -16,10 +17,6 @@ final class RequiredPackageResolverTest extends TestCase
         $requiredPackages = $requiredPackageResolver->resolve(__DIR__ . '/../..');
 
         $this->assertGreaterThan(20, count($requiredPackages));
-
-        $this->assertContainsOnlyInstancesOf(
-            \Rector\DependencyAudit\ValueObject\RequiredPackage::class,
-            $requiredPackages
-        );
+        $this->assertContainsOnlyInstancesOf(RequiredPackage::class, $requiredPackages);
     }
 }
