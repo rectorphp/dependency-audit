@@ -7,6 +7,7 @@ namespace Rector\DependencyAudit\Command;
 use Nette\Utils\FileSystem;
 use Rector\DependencyAudit\Auditor\HasPHPStanAuditor;
 use Rector\DependencyAudit\Auditor\RequiredPHPVersionAuditor;
+use Rector\DependencyAudit\Contract\AuditorInterface;
 use Rector\DependencyAudit\Utils\JsonLoader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -17,7 +18,7 @@ use Symfony\Component\Process\Process;
 final class AuditCommand extends Command
 {
     /**
-     * @var RequiredPHPVersionAuditor[]
+     * @var AuditorInterface[]
      */
     private array $auditors = [];
 
@@ -71,8 +72,15 @@ final class AuditCommand extends Command
             $symfonyStyle->newLine();
         }
 
-        $symfonyStyle->text(sprintf('Found %d installed packages', count($packagesWithoutSymfony)));
+
+        $clonedRepositoryDirectory = getcwd() . '/cloned-repos';
+        FileSystem::createDir($clonedRepositoryDirectory);
+
+        $symfonyStyle->text(sprintf('Found %d dependency packages', count($packagesWithoutSymfony)));
         $symfonyStyle->newLine();
+
+        $this->cloneInstalledPackages($packagesWithoutSymfony, $clonedRepositoryDirectory, $symfonyStyle);
+
         // @todo next
         // run auditors
 
@@ -92,22 +100,19 @@ final class AuditCommand extends Command
             }
         }
 
-        dump($auditResults);
-
-        // $this->cloneInstalledPackages($packagesWithoutSymfony, $clonedRepositoryDirectory, $symfonyStyle);
 
         return Command::SUCCESS;
     }
 
     /**
-     * @param array<array{string: string}> $packages
+     * @param array<mixed> $packages
      */
     private function cloneInstalledPackages(array $packages, string $clonedRepositoryDirectory, SymfonyStyle $symfonyStyle): void
     {
         foreach ($packages as $package) {
             $name = $package['name'] ?? null;
             $source = $package['source']['url'] ?? null;
-            if (! $name || ! $source) {
+            if ($name === null || $name === '' || $source === null || $source === '') {
                 continue;
             }
 
