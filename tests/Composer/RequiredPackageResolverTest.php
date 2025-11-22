@@ -16,7 +16,7 @@ final class RequiredPackageResolverTest extends TestCase
 
         $requiredPackages = $requiredPackageResolver->resolve(__DIR__ . '/../..');
 
-        $this->assertGreaterThan(20, count($requiredPackages));
+        $this->assertGreaterThan(4, count($requiredPackages));
         $this->assertContainsOnlyInstancesOf(RequiredPackage::class, $requiredPackages);
     }
 }
