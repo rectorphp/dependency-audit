@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
+use Webmozart\Assert\Assert;
 
 final class AuditCommand extends Command
 {
@@ -24,8 +25,9 @@ final class AuditCommand extends Command
         private readonly RequiredPackageResolver $requiredPackageResolver,
         private readonly SymfonyStyle $symfonyStyle,
         private array $auditors
-    )
-    {
+    ) {
+        Assert::allIsInstanceOf($auditors, AuditorInterface::class);
+
         parent::__construct();
     }
 
@@ -33,7 +35,7 @@ final class AuditCommand extends Command
     {
         $this->setName('audit');
 
-        $this->setDescription('Audit your dependencies for code quality levels they hold');
+        $this->setDescription('Audit your dependencies for code quality levels they hold (without dev deps)');
 
         $this->addArgument(
             'path',

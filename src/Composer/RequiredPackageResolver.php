@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Rector\DependencyAudit\Composer;
 
+use Nette\Utils\FileSystem;
 use Rector\DependencyAudit\Utils\JsonLoader;
 use Rector\DependencyAudit\ValueObject\RequiredPackage;
+use Symplify\EasyCodingStandard\FileSystem\JsonFileSystem;
+use Webmozart\Assert\Assert;
 
 final class RequiredPackageResolver
 {
@@ -14,18 +17,21 @@ final class RequiredPackageResolver
      */
     public function resolve(string $projectDirectory): array
     {
+        // 1. load installed packages
         $installedJsonFilePath = $projectDirectory . '/vendor/composer/installed.json';
-        $lockData = JsonLoader::loadFileToJson($installedJsonFilePath);
+        $installedJson = JsonLoader::loadFileToJson($installedJsonFilePath);
 
-        $packagesData = $lockData['packages'] ?? [];
+        $packagesData = $installedJson['packages'] ?? [];
         if ($packagesData === []) {
             return [];
         }
 
-        $requiredPackages = $this->createValueObjects($packagesData);
+        $devPackageNames = $installedJson['dev-package-names'] ?? [];
+
+        $requiredPackageNames = $this->createValueObjects($packagesData, $devPackageNames);
 
         $usefulPackages = array_filter(
-            $requiredPackages,
+            $requiredPackageNames,
             function (RequiredPackage $package): bool {
                 // remove symfony/* packages, as they share the same code quality, no need to check 35 split packages
                 // keep output informative and focused on non framework packages instead
@@ -46,10 +52,14 @@ final class RequiredPackageResolver
 
     /**
      * @param mixed[] $packagesData
+     * @param mixed[] $devPackageNames
+     *
      * @return RequiredPackage[]
      */
-    private function createValueObjects(array $packagesData): array
+    private function createValueObjects(array $packagesData, array $devPackageNames): array
     {
+        Assert::allString($devPackageNames);
+
         $requiredPackages = [];
         foreach ($packagesData as $packagesDataItem) {
             if (! isset($packagesDataItem['name'])) {

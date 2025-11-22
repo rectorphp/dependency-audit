@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace Rector\DependencyAudit\DependencyInjection;
 
 use Illuminate\Container\Container;
+use Rector\DependencyAudit\Auditor\HasPHPStanAuditor;
+use Rector\DependencyAudit\Auditor\RequiredPHPVersionAuditor;
 use Rector\DependencyAudit\Command\AuditCommand;
+use Rector\DependencyAudit\Contract\AuditorInterface;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Webmozart\Assert\Assert;
 
 final class ContainerFactory
 {
@@ -36,13 +40,21 @@ final class ContainerFactory
             }
         );
 
+        $this->registerAuditor($container, HasPHPStanAuditor::class);
+        $this->registerAuditor($container, RequiredPHPVersionAuditor::class);
+
         $container->when(AuditCommand::class)
             ->needs('$auditors')
-            ->give([
-                \Rector\DependencyAudit\Auditor\HasPHPStanAuditor::class,
-                \Rector\DependencyAudit\Auditor\RequiredPHPVersionAuditor::class,
-            ]);
+            ->giveTagged(AuditorInterface::class);
 
         return $container;
+    }
+
+    private function registerAuditor(Container $container, string $class): void
+    {
+        Assert::isAOf($class, AuditorInterface::class);
+
+        $container->singleton($class);
+        $container->tag($class, AuditorInterface::class);
     }
 }
