@@ -12,7 +12,7 @@ final class RequiredPackageResolverTest extends TestCase
     {
         $requiredPackageResolver = new \Rector\DependencyAudit\Composer\RequiredPackageResolver();
 
-        $requiredPackages = $requiredPackageResolver->resolve(__DIR__ . '/..');
+        $requiredPackages = $requiredPackageResolver->resolve(__DIR__ . '/../..');
 
         dump($requiredPackages);
     }
