@@ -7,6 +7,10 @@ namespace Rector\DependencyAudit\DependencyInjection;
 use Illuminate\Container\Container;
 use Rector\DependencyAudit\Command\AuditCommand;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\NullOutput;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 final class ContainerFactory
 {
@@ -22,6 +26,15 @@ final class ContainerFactory
 
             return $application;
         });
+
+        $container->singleton(
+            SymfonyStyle::class,
+            static function (): SymfonyStyle {
+                // use null output ofr tests to avoid printing
+                $consoleOutput = defined('PHPUNIT_COMPOSER_INSTALL') ? new NullOutput() : new ConsoleOutput();
+                return new SymfonyStyle(new ArrayInput([]), $consoleOutput);
+            }
+        );
 
         $container->when(AuditCommand::class)
             ->needs('$auditors')

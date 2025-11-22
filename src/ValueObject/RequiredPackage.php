@@ -21,4 +21,9 @@ final class RequiredPackage
     {
         return $this->sourceUrl;
     }
+
+    public function getDirectoryName(): string
+    {
+        return str_replace('/', '-', $this->name);
+    }
 }
