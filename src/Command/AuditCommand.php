@@ -55,8 +55,10 @@ final class AuditCommand extends Command
         $requiredPackages = $this->requiredPackageResolver->resolve($projectDirectory);
 
         $this->symfonyStyle->writeln(
-            sprintf('<fg=green>Running dependency audit on %d dependency packages</>',
-            count($requiredPackages))
+            sprintf(
+                '<fg=green>Running dependency audit on %d dependency packages</>',
+                count($requiredPackages)
+            )
         );
         $this->symfonyStyle->newLine();
 
